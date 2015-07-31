@@ -1,0 +1,73 @@
+#service-status-container {
+	width: 200px;
+}
+ul#service-status {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+ul#service-status li a {
+	display: inline-block;
+	width: 160px;
+	text-decoration: none;
+	margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #999;
+    border-radius: 10px;
+    color: #333;
+    text-shadow: 0 1px #fff;
+    background: #ccc;
+    background-image: -webkit-linear-gradient(top, #eee 0%, #bbb 100%);
+    background-image: -moz-linear-gradient(top, #eee 0%, #bbb 100%);
+    background-image: linear-gradient(top, #eee 0%, #bbb 100%);
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    -webkit-box-shadow: 0 1px #fff inset;
+    -moz-box-shadow: 0 1px #fff inset;
+    box-shadow: 0 1px #fff inset;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-left: 0;
+}
+ul#service-status li a:hover {
+	color: #fff;
+    text-decoration: none;
+    text-shadow: 0 -1px rgba(0,0,0,.7);
+    border: 1px solid #111;
+    background: #666;
+    background-image: -webkit-linear-gradient(top, #666 0%, #444 100%);
+    background-image: -moz-linear-gradient(top, #666 0%, #444 100%);
+    background-image: linear-gradient(top, #666 0%, #444 100%);
+    -webkit-box-shadow: 0 1px rgba(255,255,255,.3) inset;
+    -moz-box-shadow: 0 1px rgba(255,255,255,.3) inset;
+    box-shadow: 0 1px rgba(255,255,255,.3) inset;
+}
+span.icon {
+	display: inline-block;
+	border: 1px solid #999;
+	border-right: none;
+	border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    background-color: green;
+    width: 16px;
+    padding: 10px;
+    background-image: linear-gradient(top, #00B200 0%, #007F00 100%);
+    background-image: url(images/status-icons.png);
+}
+
+.green .icon {
+	background-color: green;
+}
+.yellow .icon {
+	background-color: yellow;
+	background-position: 0 -35px;
+}
+.red .icon {
+	background-color: red;
+	background-position: 0 -69px;
+}
