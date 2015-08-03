@@ -1,26 +1,22 @@
 <?php
 
 /* Prevent Browser Access */
-if ( !isset( $_POST['getem'] ) )
+if ( !isset( $_POST['outage_areas'] ) )
 	die;
 
 class TweetExplorer
 {
-	private $feed = "UCOGeeks";
+	private $feed = "";
 
-	private $outage_hashtag = "outage";
+	private $outage_hashtag = "";
 
-	private $resolved_hashtag = "resolved"; 
+	private $issue_hashtag = "";
+
+	private $resolved_hashtag = ""; 
 	
-	/* These need to match the css id's on the li's in the service status list */
-	private $outage_areas = array(
-		'network ',
-		'email',
-		'phones',
-		'banner',
-	);
+	private $outage_areas = array();
 
-	private $since;
+	private $since = "";
 
 	private $tw;
 
@@ -32,13 +28,38 @@ class TweetExplorer
 	{
 		require_once("twitter/TwitterAPIExchange.php");
 
-		$this->get_twitter();
+		if ( false === $this->set_local_vars() )
+			return false;
 
-		$this->set_since_date();
+		$this->get_twitter();
 
 		$this->get_tweets();
 
 		$this->parse_tweets();
+	}
+
+	private function set_local_vars()
+	{
+		if ( !isset(
+				$_POST['outage_areas'],
+				$_POST['outage_hashtag'],
+				$_POST['issue_hashtag'],
+				$_POST['resolved_hashtag'],
+				$_POST['feed']
+			) )
+			return false;
+
+		$this->outage_areas = $_POST['outage_areas'];
+
+		$this->feed = $_POST['feed'];
+
+		$this->outage_hashtag = $_POST['outage_hashtag'];
+
+		$this->issue_hashtag = $_POST['issue_hashtag'];
+
+		$this->resolved_hashtag = $_POST['resolved_hashtag'];
+		
+		$this->since = date( "Y-m-d", strtotime( "-1 day" ) );
 	}
 
 	private function get_twitter()
@@ -47,15 +68,8 @@ class TweetExplorer
 			'oauth_access_token' 		=> '3301661635-tiXddkbsHDREZbPjVnhtn8rZZ8oah75MxhzGKWa',
 			'oauth_access_token_secret' => 'WyfV56RZabcTPym9CyzgUa8UJuFwGqrckeFKIHuPxgBeS',
 			'consumer_key' 				=> 'CVYUJRT73InObVGPvCLoBfQYT',
-			'consumer_secret' 			=> 'Vzwh8BM5yEyQImwYL2kqml3Og1KqoIK0hk1elDaU9fSiZHu6Mz'		
+			'consumer_secret' 			=> 'Vzwh8BM5yEyQImwYL2kqml3Og1KqoIK0hk1elDaU9fSiZHu6Mz'
 		) );
-
-		return;
-	}
-
-	private function set_since_date()
-	{
-		$this->since = date( "Y-m-d", strtotime( "-1 day" ) );
 
 		return;
 	}
@@ -63,14 +77,18 @@ class TweetExplorer
 	private function get_tweets()
 	{
 		$get = "?" . http_build_query( array(
-			// Example: #outage AND (#network OR #phones OR #banner) from:@UCOGeeks since: 2015-07-30
-			"q" => "#" . $this->outage_hashtag . " AND (#" . implode( " OR #", $this->outage_areas ) . ")" . "from:@" . $this->feed . " since:" . $this->since,
+			// Example: (#outage OR #issue) AND (#network OR #phones OR #banner) from:@UCOGeeks since: 2015-07-30
+			"q" => "(#" . $this->outage_hashtag . " OR " . "#". $this->issue_hashtag .") AND (#" . implode( " OR #", $this->outage_areas ) . ") " . "from:@" . $this->feed . " since:" . $this->since,
 			// I think we should account for at least one outage tweet and one resolved tweet for each area above...just in case, right?
 			"count" => sizeof( $this->outage_areas ) * 2,
 		) );
 
-		$tweets = $this->tw->setGetfield( $get )->buildOauth( "https://api.twitter.com/1.1/search/tweets.json", "GET")->performRequest();
+		//$tweets = $this->tw->setGetfield( $get )->buildOauth( "https://api.twitter.com/1.1/search/tweets.json", "GET")->performRequest();
 
+		// testing -- sets $tweets to what's in demo-data.php!!!
+		include 'demo-data.php';
+		// end testing
+		
 		$this->tweets = json_decode( $tweets );
 
 		return;
@@ -80,34 +98,57 @@ class TweetExplorer
 	{
 		if ( $this->tweets && isset( $this->tweets->statuses ) )
 		{
-			$return = array();
+			$problems = array(
+				'issues' => array(),
+				'outages' => array()
+			);
 
-			$issues = array();
+			$issue_areas = array();
 
-			$merged = array();
+			$outage_areas = array();
+
+			$resolved_areas = array();
 
 			foreach( $this->tweets->statuses as $tweet )
 			{
 				$hashtags = array();
 
 				foreach ( $tweet->entities->hashtags as $obj )
-					// we may be able to separate errors from slowness here to change the icon...actually we could.
 					$hashtags[] = $obj->text;
 
+				// Only return hashtags available in $this->outage_areas..in case the tweet has some unrelated ones.
+				$areas = array_intersect( $this->outage_areas, $hashtags );
 
-				$outage_areas = array_intersect( $this->outage_areas, $hashtags );
-			
-				// If the resolved status is found among the hashtags of a tweet, assume it has been resolved and skip it
 				if ( in_array( $this->resolved_hashtag, $hashtags ) )
-					break;
+				{
+					// save an array of resolved areas so we can remove them from $problems later
+					$resolved_areas = array_merge( $resolved_areas, $areas );
+					// skip this tweet as it contains the resolved hashtag
+					continue;
+				}
+				// Tweets without the resolved hashtag are saved in $problems.
+				if ( in_array( $this->issue_hashtag, $hashtags ) )
+					$problems['issues'] = array_merge( $problems['issues'], $areas );
+				if( in_array( $this->outage_hashtag, $hashtags ) )
+					$problems['outages'] = array_merge( $problems['outages'], $areas );
 
-				// We only want to return hashtags listed in the outage areas array above..in case the tweet has some unrelated ones.
-				$issues = array_merge( $issues, $outage_areas );
 			}
 
-			if ( $issues )
+			foreach( $problems as $key => &$value )
+			{
+				// remove duplicates
+				$value = array_unique( $value );
+				// Remove from $problems those areas whch are saved in $resolved_areas.
+				// Since we don't want to have to go back and add #resolved to each tweet about the issue/outage
+				// we should globally mark it resolved for the last calendar day...I think.
+				foreach ( $value as $subkey => $area )
+					if ( in_array( $area, $resolved_areas ) )
+						unset( $problems[ $key ][ $subkey ] );
+			}
+
+			if ( sizeof( $problems['issues'] ) > 0 || sizeof( $problems['outages'] ) > 0 )
 				// make a unique array of the issues and set $this->return to the json_encoded value
-				$this->return = json_encode( array_unique( $issues ) );
+				$this->return = json_encode( $problems );
 		}
 
 		return;
