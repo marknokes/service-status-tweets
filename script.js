@@ -55,7 +55,7 @@ twitterExplorer.q(document).ready(function($){
 
 	/* Get tweets, parse hashtags, and add appropriate class of yellor or red */
 	$.ajax({
-		url: "tweets.php",
+		url: "service-status-tweets.php",
 		type: "POST",
 		data: {
 			outage_areas:outageAreas,
