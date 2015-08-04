@@ -21,7 +21,7 @@ twitterExplorer.q = jQuery.noConflict( true );
 
 twitterExplorer.q(document).ready(function($){
     
-    $('head').append('<link rel="stylesheet" href="http://www.uco.edu/includes/service-status-tweets/tweet-explorer.css" type="text/css" />');
+    $('head').append('<link rel="stylesheet" href="tweet-explorer.css" type="text/css" />');
     
 	/* Set up vars */
 	var html = '<ul id="service-status">',
@@ -33,7 +33,7 @@ twitterExplorer.q(document).ready(function($){
 		outageAreas = $container.html().trim().split(","),
 		outageHashtag = "outage",
 		issueHashtag = "issue",
-		resolvedHashtag = "resolved",
+		resolvedHashtag = "restored",
 		feed = "UCOGeeks",
 		date,
 		query;
@@ -58,7 +58,7 @@ twitterExplorer.q(document).ready(function($){
 
 	/* Get tweets, parse hashtags, and add appropriate class of yellor or red */
 	$.ajax({
-		url: "http://www.uco.edu/includes/service-status-tweets/TweetExplorer.php",
+		url: "TweetExplorer.php",
 		type: "POST",
 		data: {
 			outage_areas:outageAreas,
