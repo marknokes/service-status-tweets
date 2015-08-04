@@ -83,11 +83,7 @@ class TweetExplorer
 			"count" => sizeof( $this->outage_areas ) * 2,
 		) );
 
-		//$tweets = $this->tw->setGetfield( $get )->buildOauth( "https://api.twitter.com/1.1/search/tweets.json", "GET")->performRequest();
-
-		// testing -- sets $tweets to what's in demo-data.php!!!
-		include 'demo-data.php';
-		// end testing
+		$tweets = $this->tw->setGetfield( $get )->buildOauth( "https://api.twitter.com/1.1/search/tweets.json", "GET")->performRequest();
 		
 		$this->tweets = json_decode( $tweets );
 
