@@ -3,6 +3,8 @@
 /* Prevent Browser Access */
 if ( !isset( $_POST['outage_areas'] ) )
 	die;
+    
+header('Access-Control-Allow-Origin: *');
 
 class TweetExplorer
 {

@@ -20,6 +20,9 @@ var twitterExplorer = {};
 twitterExplorer.q = jQuery.noConflict( true );
 
 twitterExplorer.q(document).ready(function($){
+    
+    $('head').append('<link rel="stylesheet" href="http://www.uco.edu/includes/service-status-tweets/tweet-explorer.css" type="text/css" />');
+    
 	/* Set up vars */
 	var html = '<ul id="service-status">',
 		today = new Date(),
@@ -55,7 +58,7 @@ twitterExplorer.q(document).ready(function($){
 
 	/* Get tweets, parse hashtags, and add appropriate class of yellor or red */
 	$.ajax({
-		url: "service-status-tweets.php",
+		url: "http://www.uco.edu/includes/service-status-tweets/TweetExplorer.php",
 		type: "POST",
 		data: {
 			outage_areas:outageAreas,
