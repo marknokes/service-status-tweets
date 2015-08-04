@@ -8,6 +8,7 @@
 }
 #service-status-container ul#service-status li {
     list-style-image: none !important;
+    background-color: #fff !important;
 }
 #service-status-container ul#service-status li a {
     display: inline-block;
