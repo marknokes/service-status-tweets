@@ -17,72 +17,74 @@ return new Za.prototype.init(a,b,c,d,e)}m.Tween=Za,Za.prototype={constructor:Za,
 var twitterExplorer = {};
 
 /* Add jQuery to namespace */
-twitterExplorer.q = jQuery.noConflict( true );
+twitterExplorer.q = jQuery.noConflict(true);
 
-twitterExplorer.q(document).ready(function($){
-    
-    $('head').append('<link rel="stylesheet" href="tweet-explorer.css" type="text/css" />');
-    
-	/* Set up vars */
-	var html = '<ul id="service-status">',
-		today = new Date(),
-		dd = today.getDate(),
-		mm = today.getMonth()+1, // Jan. is zero
-		yyyy = today.getFullYear(),
-		$container = $("#service-status-container"),
-		outageAreas = $container.html().trim().split(","),
-		outageHashtag = "outage",
-		issueHashtag = "issue",
-		resolvedHashtag = "restored",
-		feed = "UCOGeeks",
-		date,
-		query;
+twitterExplorer.q(document).ready(function ($) {
 
-	/* Set up a proper date string */
-	dd = dd < 10 ? '0'+dd : dd;
-	mm = mm < 10 ? '0'+mm : mm;
-	date = yyyy+"-"+mm+"-"+dd;
+    /* Set up vars */
+    var html = '<ul id="service-status">',
+        appUrl = '',
+        today = new Date(),
+        dd = today.getDate(),
+        mm = today.getMonth() + 1, // Jan. is zero
+        yyyy = today.getFullYear(),
+        $container = $("#service-status-container"),
+        outageAreas = $container.html().trim().split(","),
+        outageHashtag = "outage",
+        issueHashtag = "issue",
+        resolvedHashtag = "restored",
+        feed = "UCOGeeks",
+        date,
+        query;
 
-	/* Create remaining HTML for list */
-	for(i=0; i < outageAreas.length; i+=1) {
-		query = '%28%23'+outageHashtag+'%20OR%20%23'+issueHashtag+'%29%20AND%20%23'+outageAreas[i]+'%20from%3A%40UCOGeeks%20since%3A'+date;
-		html += '<li id="'+outageAreas[i]+'" class="green">';
-		html += '<span class="icon">&nbsp;</span>';
-		html += '<a href="https://twitter.com/search?q='+query+'" target="_blank">'+outageAreas[i]+'</a>';
-		html += '</li>';
-	}
-	html += '</ul>';
+    /* Append required CSS to head */
+    $('head').append('<link rel="stylesheet" href="' + appUrl + 'tweet-explorer.css" type="text/css" />');
 
-	/* Add HTML to container and set visibility to visible. */
-	$container.html(html).css('visibility', 'visible');
+    /* Set up a proper date string */
+    dd = dd < 10 ? '0' + dd : dd;
+    mm = mm < 10 ? '0' + mm : mm;
+    date = yyyy + "-" + mm + "-" + dd;
 
-	/* Get tweets, parse hashtags, and add appropriate class of yellor or red */
-	$.ajax({
-		url: "TweetExplorer.php",
-		type: "POST",
-		data: {
-			outage_areas:outageAreas,
-			outage_hashtag:outageHashtag,
-			issue_hashtag:issueHashtag,
-			resolved_hashtag:resolvedHashtag,
-			feed:feed
-		},
-		dataType: "json",
-		success: function(response){
-			if ( response.length !== 0 ) {
-				$.each(response, function(index,value) {
-					if ( 'issues' === index ) {
-						$.each(value, function(index,value) {
-							$("#"+value).removeClass('green').addClass('yellow');
-						});
-					// making outages second will ensure that if the area is in both issues and outages, outages will take precedence.
-					} else if ( 'outages' === index ) {
-						$.each(value, function(index,value) {
-							$("#"+value).removeClass('green').addClass('red');
-						});
-					}
-				});
-			}
-		}
-	});
+    /* Create remaining HTML for list */
+    $.each(outageAreas, function (index, value) {
+        query = '%28%23' + outageHashtag + '%20OR%20%23' + issueHashtag + '%29%20AND%20%23' + value + '%20from%3A%40UCOGeeks%20since%3A' + date;
+        html += '<li id="list-item-' + index + '" class="green">';
+        html += '<span class="icon">&nbsp;</span>';
+        html += '<a href="https://twitter.com/search?q=' + query + '" target="_blank">' + value + '</a>';
+        html += '</li>';
+    });
+    html += '</ul>';
+
+    /* Add HTML to container and set visibility to visible. */
+    $container.html(html).css('visibility', 'visible');
+
+    /* Get tweets, parse hashtags, and add appropriate class of yellor or red */
+    $.ajax({
+        url: appUrl + "TweetExplorer.php",
+        type: "POST",
+        data: {
+            outage_areas: outageAreas,
+            outage_hashtag: outageHashtag,
+            issue_hashtag: issueHashtag,
+            resolved_hashtag: resolvedHashtag,
+            feed: feed
+        },
+        dataType: "json",
+        success: function (response) {
+            if (response.length !== 0) {
+                $.each(response, function (index, value) {
+                    if ('issues' === index) {
+                        $.each(value, function (index, value) {
+                            $("#" + value).removeClass('green').addClass('yellow');
+                        });
+                    // making outages second will ensure that if the area is in both issues and outages, outages will take precedence.
+                    } else if ('outages' === index) {
+                        $.each(value, function (index, value) {
+                            $("#" + value).removeClass('green').addClass('red');
+                        });
+                    }
+                });
+            }
+        }
+    });
 });
