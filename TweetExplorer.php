@@ -1,11 +1,5 @@
 <?php
 
-/* Prevent Browser Access */
-if ( !isset( $_POST['outage_areas'] ) )
-	die;
-    
-header('Access-Control-Allow-Origin: *');
-
 class TweetExplorer
 {
 	private $feed = "";
@@ -28,6 +22,8 @@ class TweetExplorer
 	
 	public function __construct()
 	{
+		$this->set_access_control_header();
+
 		require_once("twitter/TwitterAPIExchange.php");
 
 		if ( false === $this->set_local_vars() )
@@ -38,6 +34,27 @@ class TweetExplorer
 		$this->get_tweets();
 
 		$this->parse_tweets();
+	}
+
+	private function set_access_control_header()
+	{
+		$allowed = array(
+			'localhost', // Remove if in production
+			'uco.edu',
+			'preview.uco.local',
+			'wcms.uco.edu',
+			'wcmstest.uco.edu',
+			'lonotest.uco.local'
+		);
+
+		$origin_parts = isset( $_SERVER['HTTP_ORIGIN'] ) ? parse_url( $_SERVER['HTTP_ORIGIN'] ) : array('host' => '');
+
+		$origin_host = str_replace("www.", "", $origin_parts['host'] );
+
+		if ( in_array( $origin_host, $allowed ) )
+			header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN'] );
+		else
+			die;
 	}
 
 	private function set_local_vars()

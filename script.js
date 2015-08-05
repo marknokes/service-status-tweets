@@ -69,16 +69,15 @@ twitterExplorer.q(document).ready(function($){
 		},
 		dataType: "json",
 		success: function(response){
-			if ( response.length !== 0 )
-			{
-				$.each(response, function(index,value){
+			if ( response.length !== 0 ) {
+				$.each(response, function(index,value) {
 					if ( 'issues' === index ) {
-						$.each(value, function(index,value){
+						$.each(value, function(index,value) {
 							$("#"+value).removeClass('green').addClass('yellow');
 						});
 					// making outages second will ensure that if the area is in both issues and outages, outages will take precedence.
 					} else if ( 'outages' === index ) {
-						$.each(value, function(index,value){
+						$.each(value, function(index,value) {
 							$("#"+value).removeClass('green').addClass('red');
 						});
 					}
