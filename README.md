@@ -1,5 +1,10 @@
 # service-status-tweets
-Searches specified twitter account for specified hashtags and changes status of specified systems
+
+Searches specified twitter account for specified hashtags and changes status of specified systems. For example, you could set up the following buttons: email, phones, network.
+Then you could create a tweet with the hashtags #outage #email, and the widget would update itself dynamically.
+
+
+![alt text](https://github.com/marknokes/service-status-tweets/blob/master/images/screenshot.PNG "Screenshot of service-status-tweets")
 
 You will need to edit some variables to get this up and running:
 
