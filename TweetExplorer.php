@@ -2,6 +2,20 @@
 
 class TweetExplorer
 {
+	/* EDIT THESE VARS */
+	private $allowed_domains = array(
+				'localhost', // Remove if in production
+				'domain.com',
+			);
+
+	private $twitter_creds = array(
+				'oauth_access_token' 		=> 'REPLACE_ME',
+				'oauth_access_token_secret' => 'REPLACE_ME',
+				'consumer_key' 				=> 'REPLACE_ME',
+				'consumer_secret' 			=> 'REPLACE_ME'
+			);
+
+	/* STOP EDITING */
 	private $feed = "";
 
 	private $outage_hashtag = "";
@@ -38,20 +52,12 @@ class TweetExplorer
 
 	private function set_access_control_header()
 	{
-		$allowed = array(
-			'localhost', // Remove if in production
-			'uco.edu',
-			'preview.uco.local',
-			'wcms.uco.edu',
-			'wcmstest.uco.edu',
-			'lonotest.uco.local'
-		);
 
 		$origin_parts = isset( $_SERVER['HTTP_ORIGIN'] ) ? parse_url( $_SERVER['HTTP_ORIGIN'] ) : array('host' => '');
 
 		$origin_host = str_replace("www.", "", $origin_parts['host'] );
 
-		if ( in_array( $origin_host, $allowed ) )
+		if ( in_array( $origin_host, $this->allowed_domains ) )
 			header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN'] );
 		else
 			die;
@@ -83,12 +89,7 @@ class TweetExplorer
 
 	private function get_twitter()
 	{
-		$this->tw = new TwitterAPIExchange( array(
-			'oauth_access_token' 		=> '3301661635-tiXddkbsHDREZbPjVnhtn8rZZ8oah75MxhzGKWa',
-			'oauth_access_token_secret' => 'WyfV56RZabcTPym9CyzgUa8UJuFwGqrckeFKIHuPxgBeS',
-			'consumer_key' 				=> 'CVYUJRT73InObVGPvCLoBfQYT',
-			'consumer_secret' 			=> 'Vzwh8BM5yEyQImwYL2kqml3Og1KqoIK0hk1elDaU9fSiZHu6Mz'
-		) );
+		$this->tw = new TwitterAPIExchange( $this->twitter_creds );
 
 		return;
 	}
@@ -102,8 +103,8 @@ class TweetExplorer
 			"count" => sizeof( $this->outage_areas ) * 2,
 		) );
 
-		//$tweets = $this->tw->setGetfield( $get )->buildOauth( "https://api.twitter.com/1.1/search/tweets.json", "GET")->performRequest();
-		include"demo-data.php";
+		$tweets = $this->tw->setGetfield( $get )->buildOauth( "https://api.twitter.com/1.1/search/tweets.json", "GET")->performRequest();
+
 		$this->tweets = json_decode( $tweets );
 
 		return;

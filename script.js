@@ -22,18 +22,18 @@ twitterExplorer.q = jQuery.noConflict(true);
 twitterExplorer.q(document).ready(function ($) {
 
     /* Set up vars */
-    var html = '<ul id="service-status">',
-        appUrl = '',
+    var appUrl = "", // Ex: If on a different domain, https://www.domain.com/apps/service-status-tweets/'
+        outageHashtag = "outage",
+        issueHashtag = "issue",
+        resolvedHashtag = "resolved",
+        feed = "REPLACE_ME",
         today = new Date(),
         dd = today.getDate(),
         mm = today.getMonth() + 1, // Jan. is zero
         yyyy = today.getFullYear(),
+        html = "<ul id='service-status'>",
         $container = $("#service-status-container"),
         outageAreas = $container.html().trim().split(","),
-        outageHashtag = "outage",
-        issueHashtag = "issue",
-        resolvedHashtag = "restored",
-        feed = "UCOGeeks",
         date,
         query;
 
@@ -47,7 +47,7 @@ twitterExplorer.q(document).ready(function ($) {
 
     /* Create remaining HTML for list */
     $.each(outageAreas, function (index, value) {
-        query = '%28%23' + outageHashtag + '%20OR%20%23' + issueHashtag + '%29%20AND%20%23' + value + '%20from%3A%40UCOGeeks%20since%3A' + date;
+        query = '%28%23' + outageHashtag + '%20OR%20%23' + issueHashtag + '%29%20AND%20%23' + value + '%20from%3A%40' + feed + '%20since%3A' + date;
         html += '<li id="list-item-' + index + '" class="green">';
         html += '<span class="icon">&nbsp;</span>';
         html += '<a href="https://twitter.com/search?q=' + query + '" target="_blank">' + value + '</a>';
