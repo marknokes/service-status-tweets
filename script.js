@@ -13,6 +13,16 @@ return new Za.prototype.init(a,b,c,d,e)}m.Tween=Za,Za.prototype={constructor:Za,
 * @author Mark Nokes
 *******************************************/
 
+/*******************************************
+* Custom functions
+*******************************************/
+String.prototype.toCamelCase = function() {
+    return this
+        .replace(/\s(.)/g, function($1) { return $1.toUpperCase(); })
+        .replace(/\s/g, '')
+        .replace(/^(.)/, function($1) { return $1.toLowerCase(); });
+}
+
 /* Set up namespace for jQuery */
 var twitterExplorer = {};
 
@@ -34,6 +44,9 @@ twitterExplorer.q(document).ready(function ($) {
         html = "<ul id='service-status'>",
         $container = $("#service-status-container"),
         outageAreas = $container.html().trim().split(","),
+        outageAreasCamelCase = Array.prototype.map.call(outageAreas, function(text) {
+            return text.toCamelCase();
+        }),
         date,
         query;
 
@@ -47,7 +60,7 @@ twitterExplorer.q(document).ready(function ($) {
 
     /* Create remaining HTML for list */
     $.each(outageAreas, function (index, value) {
-        query = '%28%23' + outageHashtag + '%20OR%20%23' + issueHashtag + '%29%20AND%20%23' + value + '%20from%3A%40' + feed + '%20since%3A' + date;
+        query = '%28%23' + outageHashtag + '%20OR%20%23' + issueHashtag + '%29%20AND%20%23' + outageAreasCamelCase[index] + '%20from%3A%40' + feed + '%20since%3A' + date;
         html += '<li id="list-item-' + index + '" class="green">';
         html += '<span class="icon">&nbsp;</span>';
         html += '<a href="https://twitter.com/search?q=' + query + '" target="_blank">' + value + '</a>';
@@ -63,7 +76,7 @@ twitterExplorer.q(document).ready(function ($) {
         url: appUrl + "TweetExplorer.php",
         type: "POST",
         data: {
-            outage_areas: outageAreas,
+            outage_areas: outageAreasCamelCase,
             outage_hashtag: outageHashtag,
             issue_hashtag: issueHashtag,
             resolved_hashtag: resolvedHashtag,
