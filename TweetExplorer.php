@@ -3,40 +3,74 @@
 class TweetExplorer
 {
 	/* EDIT THESE VARS */
-	private $allowed_domains = array(
-				'localhost', // Remove if in production
-				'domain.com',
-			);
 
+	/*
+	* Interval of time between api calls
+	* @var int
+	*/
+	private $run_interval = 1800; // 30 min
+
+	/*
+	* List of allowed domains. Domains in this list will be allowed via $this->set_access_control_header()
+	* @var array
+	*/
+	private $allowed_domains = array(
+            'localhost', // Remove if in production
+            'domain.com',
+        );
+
+	/*
+	* Twitter oauth credentials
+	* @var array
+	*/
 	private $twitter_creds = array(
-				'oauth_access_token' 		=> 'REPLACE_ME',
-				'oauth_access_token_secret' => 'REPLACE_ME',
-				'consumer_key' 				=> 'REPLACE_ME',
-				'consumer_secret' 			=> 'REPLACE_ME'
-			);
+            'oauth_access_token'        => 'REPLACE_ME',
+            'oauth_access_token_secret' => 'REPLACE_ME',
+            'consumer_key'              => 'REPLACE_ME',
+            'consumer_secret'           => 'REPLACE_ME'
+        );
+
+	/*
+	* Full computer path to run log file. Default is current directory.
+	* @var str
+	*/
+	private $log = "log.txt";
+
+	/*
+	* Full computer path to cache file. Default is current directory.
+	* @var str
+	*/
+	private $json = "tweets.json";
 
 	/* STOP EDITING */
-	private $feed = "";
 
-	private $outage_hashtag = "";
-
-	private $issue_hashtag = "";
-
-	private $resolved_hashtag = ""; 
+	private $feed = "",
+			$outage_hashtag = "",
+			$issue_hashtag = "",
+			$resolved_hashtag = "",
+			$since = "";
 	
 	private $outage_areas = array();
 
-	private $since = "";
-
-	private $tw;
-
-	private $tweets;
+	private $tw,
+			$tweets;
 
 	public $return = false;
+
+	private $last_run = 0;
 	
 	public function __construct()
 	{
 		$this->set_access_control_header();
+
+		$this->do_run = $this->do_run();
+
+        if( file_exists( $this->json ) && false === $this->do_run ) {
+
+        	$this->return = file_get_contents( $this->json );
+
+        	return;
+        }
 
 		require_once("twitter/TwitterAPIExchange.php");
 
@@ -47,9 +81,17 @@ class TweetExplorer
 
 		$this->get_tweets();
 
+		$this->log_run_time();
+
 		$this->parse_tweets();
 	}
 
+	/*
+	* Sets the Access-Control-Allow-Origin header for the current HTTP_ORIGIN
+	* if it's in the list of $this->allowed_domains
+	* 
+	* @return null
+	*/
 	private function set_access_control_header()
 	{
 
@@ -63,6 +105,48 @@ class TweetExplorer
 			die;
 	}
 
+	/*
+	* Logs a current unix timestamp to $this->log
+	* 
+	* @return null
+	*/
+	private function log_run_time()
+	{
+		if ( !file_put_contents( $this->log , time() ) )
+
+		return;
+	}
+
+	/*
+	* Determine if we should make an api call, or wait the specified $this->run_interval
+	* 
+	* @return bool True if it's time or if log doesn't exist (first run), false otherwise
+	*/
+	private function do_run()
+	{
+		if ( !file_exists( $this->log ) )
+		{
+			$this->log_run_time();
+
+			return true;
+		}
+
+		$timestamp = @file_get_contents( $this->log );
+
+		$this->last_run = $timestamp ? intval( $timestamp ) : 0;
+
+		if( 0 !== $this->last_run && time() >= ( $this->last_run + $this->run_interval ) )
+
+			return true;
+
+		return false;
+	}
+
+	/*
+	* Set class vars from $_POST'ed data
+	* 
+	* @return null
+	*/
 	private function set_local_vars()
 	{
 		if ( !isset(
@@ -87,6 +171,11 @@ class TweetExplorer
 		$this->since = date( "Y-m-d", strtotime( "-1 day" ) );
 	}
 
+	/*
+	* Create twitter object
+	* 
+	* @return null
+	*/
 	private function get_twitter()
 	{
 		$this->tw = new TwitterAPIExchange( $this->twitter_creds );
@@ -94,6 +183,12 @@ class TweetExplorer
 		return;
 	}
 
+	/*
+	* Build and format a query for the twitter api. Make the api call. 
+	* Set $this->tweets to an array of tweets that match query.
+	* 
+	* @return null
+	*/
 	private function get_tweets()
 	{
 		$get = "?" . http_build_query( array(
@@ -110,6 +205,11 @@ class TweetExplorer
 		return;
 	}
 
+	/*
+	* Sort $this->tweets into array of issues and outages. If a tweet contains the $this->resolved_hashtag, remove from the array.
+	* 
+	* @return null
+	*/
 	private function parse_tweets()
 	{
 		if ( $this->tweets && isset( $this->tweets->statuses ) )
@@ -162,9 +262,16 @@ class TweetExplorer
 						unset( $problems[ $key ][ $subkey ] );
 			}
 
-			if ( sizeof( $problems['issues'] ) > 0 || sizeof( $problems['outages'] ) > 0 )
-				// make a unique array of the issues and set $this->return to the json_encoded value
-				$this->return = json_encode( $problems );
+			$problems['run_data'] = array(
+				'last_run' => $this->last_run
+			);
+
+			// make a unique array of the issues and set $this->return to the json_encoded value
+			$encoded = json_encode( $problems );
+			// the return value
+			$this->return = $encoded;
+			// the return value saved on the server to prevent hitting the api on every page load
+			file_put_contents( $this->json, $encoded );
 		}
 
 		return;
@@ -174,6 +281,7 @@ class TweetExplorer
 $TweetExplorer = new TweetExplorer();
 
 if ( false !== $TweetExplorer->return )
+
 	echo $TweetExplorer->return;
 
 die;
