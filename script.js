@@ -61,7 +61,7 @@ twitterExplorer.q(document).ready(function ($) {
     /* Create remaining HTML for list */
     $.each(outageAreas, function (index, value) {
         query = '%28%23' + outageHashtag + '%20OR%20%23' + issueHashtag + '%29%20AND%20%23' + outageAreasCamelCase[index] + '%20from%3A%40' + feed + '%20since%3A' + date;
-        html += '<li id="list-item-' + index + '" class="green">';
+        html += '<li id="service-status-' + value.toCamelCase() + '" class="green">';
         html += '<span class="icon">&nbsp;</span>';
         html += '<a href="https://twitter.com/search?q=' + query + '" target="_blank">' + value + '</a>';
         html += '</li>';
@@ -88,12 +88,12 @@ twitterExplorer.q(document).ready(function ($) {
                 $.each(response, function (index, value) {
                     if ('issues' === index) {
                         $.each(value, function (index, value) {
-                            $("#" + value).removeClass('green').addClass('yellow');
+                            $("#service-status-" + value.toCamelCase()).removeClass('green').addClass('yellow');
                         });
                     // making outages second will ensure that if the area is in both issues and outages, outages will take precedence.
                     } else if ('outages' === index) {
                         $.each(value, function (index, value) {
-                            $("#" + value).removeClass('green').addClass('red');
+                            $("#service-status-" + value.toCamelCase()).removeClass('green').addClass('red');
                         });
                     }
                 });
