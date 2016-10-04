@@ -40,7 +40,7 @@ class TweetExplorer
 	* Full computer path to cache file. Default is current directory.
 	* @var str
 	*/
-	private $json = "tweets.json";
+	private $json = "cache";
 
 	/* STOP EDITING */
 
@@ -108,13 +108,11 @@ class TweetExplorer
 	/*
 	* Logs a current unix timestamp to $this->log
 	* 
-	* @return null
+	* @return number of bytes that were written to the file, or FALSE on failure
 	*/
 	private function log_run_time()
 	{
-		if ( !file_put_contents( $this->log , time() ) )
-
-		return;
+		return file_put_contents( $this->log , time() );
 	}
 
 	/*
