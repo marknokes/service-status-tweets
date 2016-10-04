@@ -11,16 +11,6 @@ void 0!==c?null===c?void r.removeAttr(a,b):e&&"set"in e&&void 0!==(d=e.set(a,c,b
 * @author Mark Nokes
 *******************************************/
 
-/*******************************************
-* Custom functions
-*******************************************/
-String.prototype.toCamelCase = function() {
-    return this
-        .replace(/\s(.)/g, function($1) { return $1.toUpperCase(); })
-        .replace(/\s/g, '')
-        .replace(/^(.)/, function($1) { return $1.toLowerCase(); });
-}
-
 /* Set up namespace for jQuery */
 var twitterExplorer = {};
 
@@ -29,24 +19,39 @@ twitterExplorer.q = jQuery.noConflict(true);
 
 twitterExplorer.q(document).ready(function ($) {
 
-    /* Set up vars */
+    /* Set up vars and functions */
     var appUrl = "", // Ex: If on a different domain, https://www.domain.com/apps/service-status-tweets/'
         outageHashtag = "outage",
         issueHashtag = "issue",
         resolvedHashtag = "resolved",
         feed = "REPLACE_ME",
+        listIdPrefix = "service-status",
         today = new Date(),
         dd = today.getDate(),
         mm = today.getMonth() + 1, // Jan. is zero
         yyyy = today.getFullYear(),
-        html = "<ul id='service-status'>",
-        $container = $("#service-status-container"),
-        outageAreas = $container.html().trim().split(","),
-        outageAreasCamelCase = Array.prototype.map.call(outageAreas, function(text) {
-            return text.toCamelCase();
-        }),
         date,
-        query;
+        query,
+        html = "<ul id='" + listIdPrefix + "'>",
+        $container = $("#" + listIdPrefix + "-container"),
+        outageAreas = $container.html().trim().split(","),
+        functions = {
+			toCamelCase: function(text) {
+			    return text
+			    	.replace(/\s(.)/g, function($1) { return $1.toUpperCase(); })
+			        .replace(/\s/g, '')
+			        .replace(/^(.)/, function($1) { return $1.toLowerCase(); });
+			},
+			buildListElemId: function (value) {
+				return listIdPrefix + "-" + functions.toCamelCase(value);
+			},
+			updateClass: function (value,cssClass) {
+		    	$("#" + functions.buildListElemId(value)).removeClass('green').addClass(cssClass);
+		    }
+        },
+        outageAreasCamelCase = Array.prototype.map.call(outageAreas, function (text) {
+            return functions.toCamelCase(text);
+        });
 
     /* Append required CSS to head */
     $('head').append('<link rel="stylesheet" href="' + appUrl + 'tweet-explorer.css" type="text/css" />');
@@ -59,7 +64,7 @@ twitterExplorer.q(document).ready(function ($) {
     /* Create remaining HTML for list */
     $.each(outageAreas, function (index, value) {
         query = '%28%23' + outageHashtag + '%20OR%20%23' + issueHashtag + '%29%20AND%20%23' + outageAreasCamelCase[index] + '%20from%3A%40' + feed + '%20since%3A' + date;
-        html += '<li id="service-status-' + value.toCamelCase() + '" class="green">';
+        html += '<li id="' + functions.buildListElemId(value) + '" class="green">';
         html += '<span class="icon">&nbsp;</span>';
         html += '<a href="https://twitter.com/search?q=' + query + '" target="_blank">' + value + '</a>';
         html += '</li>';
@@ -85,13 +90,13 @@ twitterExplorer.q(document).ready(function ($) {
             if (response.length !== 0) {
                 $.each(response, function (index, value) {
                     if ('issues' === index) {
-                        $.each(value, function (index, value) {
-                            $("#service-status-" + value.toCamelCase()).removeClass('green').addClass('yellow');
+                        $.each(value, function (i, issue) {
+                            functions.updateClass(issue, "yellow");
                         });
                     // making outages second will ensure that if the area is in both issues and outages, outages will take precedence.
                     } else if ('outages' === index) {
-                        $.each(value, function (index, value) {
-                            $("#service-status-" + value.toCamelCase()).removeClass('green').addClass('red');
+                        $.each(value, function (i, outage) {
+                            functions.updateClass(outage, "red");
                         });
                     }
                 });
